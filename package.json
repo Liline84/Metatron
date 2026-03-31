@@ -1,0 +1,8 @@
+{
+  "name": "metatron-ai",
+  "version": "2.0.0",
+  "dependencies": {
+    "@google/generative-ai": "^0.11.0",
+    "express": "^4.18.2"
+  }
+}
