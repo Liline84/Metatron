@@ -2,29 +2,34 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
-    return res.status(405).send('Accès Refusé');
+    return res.status(405).json({ error: 'Méthode non autorisée' });
   }
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     
-    // On utilise Gemini 1.5 Flash : ultra rapide et connecté
+    // Le modèle Flash est parfait pour un chat réactif
     const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
-        // C'EST ICI QU'ON LUI DONNE ACCÈS AU WEB
         tools: [
             { googleSearch: {} }
         ]
     });
 
     const prompt = req.body.message;
+    
+    if (!prompt) {
+      return res.status(400).json({ error: 'Le message est vide.' });
+    }
+
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
     res.status(200).json({ text });
+    
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Lien neural rompu. Interférence réseau détectée." });
+    console.error("Erreur API Gemini:", error);
+    res.status(500).json({ error: "Désolé, je rencontre des problèmes de connexion en ce moment." });
   }
 };
