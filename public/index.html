@@ -3,90 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL OMNISCIENT</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <title>Assistant IA</title>
     <style>
-        :root { --neon: #0ff; --magenta: #f0f; --bg: #030305; --grid: rgba(0, 255, 255, 0.05); }
-        * { box-sizing: border-box; scroll-behavior: smooth; }
-        body { 
-            background: var(--bg); color: var(--neon); 
-            font-family: 'Share Tech Mono', monospace; 
-            height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden;
-            background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-            background-size: 30px 30px;
+        :root {
+            /* Couleurs style WhatsApp Web */
+            --bg-color: #efeae2; 
+            --header-bg: #008069; 
+            --chat-bg-user: #d9fdd3;
+            --chat-bg-ai: #ffffff;
+            --text-main: #111b21;
+            --text-muted: #667781;
         }
-        header { 
-            padding: 20px; text-align: center; font-family: 'Orbitron'; 
-            letter-spacing: 5px; background: rgba(0,0,0,0.8);
-            border-bottom: 2px solid var(--neon); box-shadow: 0 0 15px rgba(0,255,255,0.2);
-            text-shadow: 0 0 5px var(--neon); font-size: 1.2rem;
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
-        #chat { 
-            flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 20px; 
+
+        header {
+            background: var(--header-bg);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .msg { 
-            max-width: 90%; padding: 15px; position: relative; line-height: 1.6; font-size: 15px;
-            white-space: pre-wrap; word-wrap: break-word; /* Pour bien afficher le texte formaté */
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
         }
-        .user { 
-            align-self: flex-end; border-right: 4px solid var(--neon); 
-            background: rgba(0, 255, 255, 0.08); text-shadow: 0 0 2px var(--neon);
+
+        #chat {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .ai { 
-            align-self: flex-start; border-left: 4px solid var(--magenta); 
-            background: rgba(255, 0, 255, 0.05); color: #e0e0e0;
+
+        .msg-wrapper {
+            display: flex;
+            width: 100%;
         }
-        .status { font-size: 12px; color: #555; align-self: flex-start; margin-top: -15px; }
-        .input-box { 
-            padding: 20px; display: flex; gap: 15px; background: rgba(0,0,0,0.9);
-            border-top: 1px solid #222; box-shadow: 0 -5px 20px rgba(0,0,0,0.8);
+
+        .msg-wrapper.user { justify-content: flex-end; }
+        .msg-wrapper.ai { justify-content: flex-start; }
+        
+        .msg {
+            max-width: 75%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--text-main);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            position: relative;
         }
-        input { 
-            flex: 1; background: #080808; border: 1px solid #333; padding: 15px; 
-            color: var(--neon); outline: none; font-family: 'Share Tech Mono'; font-size: 16px;
-            transition: all 0.3s;
+
+        /* Coins cassés typiques des bulles de chat */
+        .msg.user {
+            background: var(--chat-bg-user);
+            border-top-right-radius: 0;
         }
-        input:focus { border-color: var(--neon); box-shadow: inset 0 0 10px rgba(0,255,255,0.1); }
-        button { 
-            background: rgba(255, 0, 255, 0.1); border: 1px solid var(--magenta); 
-            color: var(--magenta); padding: 0 30px; cursor: pointer; 
-            font-family: 'Orbitron'; font-weight: bold; transition: all 0.3s;
-            letter-spacing: 2px;
+        
+        .msg.ai {
+            background: var(--chat-bg-ai);
+            border-top-left-radius: 0;
         }
-        button:hover { 
-            background: var(--magenta); color: #000; box-shadow: 0 0 20px rgba(255,0,255,0.6); 
+
+        .input-box {
+            background: #f0f2f5;
+            padding: 12px 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
-        /* Scrollbar custom */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border: 1px solid var(--neon); }
+
+        input {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 24px;
+            font-size: 15px;
+            outline: none;
+            background: white;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+        }
+
+        button {
+            background: var(--header-bg);
+            color: white;
+            border: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        button:hover { background: #016b58; }
+        button svg { width: 22px; height: 22px; fill: currentColor; transform: translateX(2px); }
+        
+        /* --- Animation de chargement (Typing) --- */
+        .typing {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            align-items: center;
+            height: 20px;
+        }
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Scrollbar subtile */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #bcc0c4; border-radius: 3px; }
     </style>
 </head>
 <body>
-    <header>SYSTÈME GLOBAL CONNECTÉ - RECHERCHE WEB [ON]</header>
+    <header>
+        <div class="avatar">🤖</div>
+        <div>Assistant Web</div>
+    </header>
+    
     <div id="chat">
-        <div class="msg ai">INITIALISATION...<br>Accès réseau mondial confirmé. Entrez votre requête.</div>
+        <div class="msg-wrapper ai">
+            <div class="msg ai">Bonjour ! Je suis connecté et prêt à vous aider. Que cherchez-vous aujourd'hui ?</div>
+        </div>
     </div>
+    
     <div class="input-box">
-        <input type="text" id="ui" placeholder="Ex: Quel est le prix du Bitcoin aujourd'hui ?" onkeypress="if(event.key==='Enter')send()">
-        <button onclick="send()">EXECUTE</button>
+        <input type="text" id="ui" placeholder="Écrivez un message..." onkeypress="if(event.key==='Enter')send()">
+        <button onclick="send()">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+        </button>
     </div>
 
     <script>
+        const chat = document.getElementById('chat');
+        const ui = document.getElementById('ui');
+
+        // Fonction optimisée pour ajouter un message sans recharger tout le DOM
+        function appendMessage(sender, text, id = null) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `msg-wrapper ${sender}`;
+            if (id) wrapper.id = id;
+            
+            const msg = document.createElement('div');
+            msg.className = `msg ${sender}`;
+            
+            if (text === 'TYPING') {
+                msg.innerHTML = '<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+            } else {
+                msg.textContent = text; // textContent évite les failles XSS
+            }
+            
+            wrapper.appendChild(msg);
+            chat.appendChild(wrapper);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
         async function send() {
-            const ui = document.getElementById('ui');
-            const chat = document.getElementById('chat');
             const val = ui.value.trim();
             if(!val) return;
 
             // Ajout du message utilisateur
-            chat.innerHTML += `<div class="msg user">SYS_REQ: ${val}</div>`;
+            appendMessage('user', val);
             ui.value = '';
             
-            // Ajout d'un indicateur de chargement
+            // Ajout de l'indicateur de frappe
             const loadingId = 'load-' + Date.now();
-            chat.innerHTML += `<div id="${loadingId}" class="status">Recherche sur le réseau mondial en cours...</div>`;
-            chat.scrollTop = chat.scrollHeight;
+            appendMessage('ai', 'TYPING', loadingId);
 
             try {
                 const res = await fetch('/api/chat', {
@@ -96,19 +220,22 @@
                 });
                 
                 const data = await res.json();
-                document.getElementById(loadingId).remove(); // Retire le chargement
+                
+                // Retrait de l'indicateur de frappe
+                const loader = document.getElementById(loadingId);
+                if(loader) loader.remove();
 
                 if(res.ok) {
-                    chat.innerHTML += `<div class="msg ai">${data.text}</div>`;
+                    appendMessage('ai', data.text);
                 } else {
-                    chat.innerHTML += `<div class="msg ai" style="color:#ff3333; border-color:#ff3333;">[ERREUR CRITIQUE] ${data.error}</div>`;
+                    appendMessage('ai', '⚠️ Erreur: ' + (data.error || 'Erreur serveur.'));
                 }
-            } catch {
-                document.getElementById(loadingId).remove();
-                chat.innerHTML += `<div class="msg ai" style="color:#ff3333; border-color:#ff3333;">[ÉCHEC DE LA CONNEXION AU SERVEUR]</div>`;
+            } catch (err) {
+                const loader = document.getElementById(loadingId);
+                if(loader) loader.remove();
+                appendMessage('ai', '⚠️ Impossible de se connecter au réseau.');
             }
-            chat.scrollTop = chat.scrollHeight;
         }
     </script>
 </body>
-</html>
+    </html>
