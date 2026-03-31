@@ -1,38 +1,55 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const Groq = require("groq-sdk"); // Assure-toi de faire : npm install groq-sdk
+const Groq = require("groq-sdk");
+const OpenAI = require("openai");
+const { HfInference } = require("@huggingface/inference");
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).send('Refusé');
-
   const prompt = req.body.message;
 
-  // --- TENTATIVE 1 : GEMINI (IA Principale) ---
+  // 1. TENTATIVE GEMINI
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    
     const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return res.status(200).json({ text: response.text() });
+    return res.status(200).json({ text: (await result.response).text() });
+  } catch (e) {
+    console.warn("Gemini KO, passage à Groq...");
+  }
 
-  } catch (error) {
-    console.warn("Gemini a échoué, basculement sur le système de secours...");
-    
-    // --- TENTATIVE 2 : GROQ (IA de Secours) ---
-    try {
-      const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-      
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [{ role: "user", content: prompt }],
-        model: "llama3-8b-8192", // Très rapide
-      });
+  // 2. TENTATIVE GROQ
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const chat = await groq.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "llama3-8b-8192",
+    });
+    return res.status(200).json({ text: chat.choices[0]?.message?.content });
+  } catch (e) {
+    console.warn("Groq KO, passage à OpenAI...");
+  }
 
-      const text = chatCompletion.choices[0]?.message?.content;
-      return res.status(200).json({ text: text });
+  // 3. TENTATIVE OPENAI
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+    });
+    return res.status(200).json({ text: response.choices[0].message.content });
+  } catch (e) {
+    console.warn("OpenAI KO, passage à Hugging Face...");
+  }
 
-    } catch (secondError) {
-      console.error("Toutes les IA ont échoué :", secondError);
-      return res.status(500).json({ error: "Tous les systèmes sont indisponibles pour le moment." });
-    }
+  // 4. TENTATIVE HUGGING FACE (Dernier rempart)
+  try {
+    const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+    const out = await hf.textGeneration({
+      model: 'mistralai/Mistral-7B-Instruct-v0.2',
+      inputs: prompt,
+    });
+    return res.status(200).json({ text: out.generated_text });
+  } catch (e) {
+    return res.status(500).json({ error: "Désolé, tous les serveurs IA sont saturés." });
   }
 };
