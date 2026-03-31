@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
     console.warn("OpenAI KO, passage à Hugging Face...");
   }
 
-  // 4. TENTATIVE HUGGING FACE (Dernier rempart)
+// 4. TENTATIVE HUGGING FACE
   try {
     const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
     const out = await hf.textGeneration({
@@ -50,6 +50,6 @@ module.exports = async (req, res) => {
     });
     return res.status(200).json({ text: out.generated_text });
   } catch (e) {
-    return res.status(500).json({ error: "Désolé, tous les serveurs IA sont saturés." });
+    // ICI ON CHANGE POUR VOIR L'ERREUR REELLE
+    return res.status(500).json({ text: "Erreur technique : " + e.message });
   }
-};
