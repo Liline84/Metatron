@@ -213,29 +213,24 @@
             appendMessage('ai', 'TYPING', loadingId);
 
             try {
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: val })
-                });
-                
-                const data = await res.json();
-                
-                // Retrait de l'indicateur de frappe
-                const loader = document.getElementById(loadingId);
-                if(loader) loader.remove();
-
-                if(res.ok) {
-                    appendMessage('ai', data.text);
-                } else {
-                    appendMessage('ai', '⚠️ Erreur: ' + (data.error || 'Erreur serveur.'));
-                }
-            } catch (err) {
-                const loader = document.getElementById(loadingId);
-                if(loader) loader.remove();
-                appendMessage('ai', '⚠️ Impossible de se connecter au réseau.');
-            }
+                const res = await 
+fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: userMessage })
+})
+.then(res => res.json())
+.then(data => {
+    // Correction Point 6 : Affiche soit le texte, soit l'erreur envoyée par le serveur
+    const messageToShow = data.text || data.error || "Erreur inconnue";
+    appendMessage('ai', messageToShow);
+})
+.catch(err => {
+    appendMessage('ai', "Impossible de se connecter au réseau.");
+});
         }
+                }
+    
     </script>
 </body>
     </html>
